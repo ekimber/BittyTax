@@ -1,6 +1,8 @@
 from . import accointing
 from . import binance
+from . import bisq
 from . import barclays
+from . import beaconchain
 from . import bitfinex
 from . import bitpanda
 from . import bitstamp
@@ -10,6 +12,7 @@ from . import blockchain
 from . import blockfi
 from . import bscscan
 from . import celsius
+from . import cexio
 from . import cgtcalculator
 from . import changetip
 from . import circle
@@ -28,6 +31,7 @@ from . import etherscan
 from . import exodus
 from . import gatehub
 from . import generic
+from . import gateio
 from . import gravity
 from . import handcash
 from . import hecoinfo
@@ -55,4 +59,5 @@ from . import trezorsuite
 from . import uphold
 from . import volt
 from . import wirex
+from . import yoroi
 from . import zerion

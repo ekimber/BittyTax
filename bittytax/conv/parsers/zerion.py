@@ -70,15 +70,17 @@ def parse_zerion_row(data_rows, parser, data_row, row_index):
                                                           'Buy Fiat Currency',
                                                           t_ins)
 
-            data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_DEPOSIT,
-                                                     data_row.timestamp,
-                                                     buy_quantity=buy_quantity,
-                                                     buy_asset=buy_asset,
-                                                     buy_value=buy_value,
-                                                     fee_quantity=fee_quantity,
-                                                     fee_asset=fee_asset,
-                                                     fee_value=fee_value,
-                                                     wallet=WALLET)
+        record_type = TransactionOutRecord.TYPE_MINING if row_dict['Sender'] in config.mining_pools else TransactionOutRecord.TYPE_DEPOSIT
+        data_row.t_record = TransactionOutRecord(record_type,
+                                                 data_row.timestamp,
+                                                 buy_quantity=buy_quantity,
+                                                 buy_asset=buy_asset,
+                                                 buy_value=buy_value,
+                                                 fee_quantity=fee_quantity,
+                                                 fee_asset=fee_asset,
+                                                 fee_value=fee_value,
+                                                 wallet=WALLET)
+
     elif row_dict['Accounting Type'] == "Spend":
         if len(t_outs) > 1:
             do_zerion_multi_withdrawal(data_row, data_rows, row_index, t_outs)
@@ -93,11 +95,22 @@ def parse_zerion_row(data_rows, parser, data_row, row_index):
             if sell_quantity is None and fee_quantity is None:
                 return
 
-            # If a Spend only contains fees, we must include a sell of zero
-            if sell_quantity is None:
-                sell_quantity = 0
-                sell_asset = fee_asset
 
+        # If a Spend only contains fees, we must include a sell of zero
+        if sell_quantity is None:
+            sell_quantity = 0
+            sell_asset = fee_asset
+            data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_SPEND,
+                                                     data_row.timestamp,
+                                                     sell_quantity=0,
+                                                     sell_asset=fee_asset,
+                                                     sell_value=0,
+                                                     fee_quantity=fee_quantity,
+                                                     fee_asset=fee_asset,
+                                                     fee_value=fee_value,
+                                                     wallet=WALLET)
+
+        else:
             data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_WITHDRAWAL,
                                                      data_row.timestamp,
                                                      sell_quantity=sell_quantity,
@@ -107,6 +120,7 @@ def parse_zerion_row(data_rows, parser, data_row, row_index):
                                                      fee_asset=fee_asset,
                                                      fee_value=fee_value,
                                                      wallet=WALLET)
+
     elif row_dict['Accounting Type'] == "Trade":
         if len(t_ins) == 1:
             # Multi-sell or normal Trade
