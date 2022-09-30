@@ -58,6 +58,20 @@ def parse_ledger_live(data_row, parser, **_kwargs):
                                                  fee_quantity=row_dict['Operation Fees'],
                                                  fee_asset=row_dict['Currency Ticker'],
                                                  wallet=WALLET)
+
+    elif row_dict['Operation Type'] == 'REWARD':
+        data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_STAKING,
+                                                 data_row.timestamp,
+                                                 buy_quantity=row_dict['Operation Amount'],
+                                                 buy_asset=row_dict['Currency Ticker'],
+                                                 wallet=WALLET)
+
+    elif row_dict['Operation Type'] == 'MINE': ## DO NOT COMMIT
+        data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_MINING,
+                                                 data_row.timestamp,
+                                                 buy_quantity=row_dict['Operation Amount'],
+                                                 buy_asset=row_dict['Currency Ticker'],
+                                                 wallet=WALLET)
     else:
         raise UnexpectedTypeError(parser.in_header.index('Operation Type'), 'Operation Type',
                                   row_dict['Operation Type'])

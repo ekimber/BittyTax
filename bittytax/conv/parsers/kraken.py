@@ -41,6 +41,12 @@ def parse_kraken_deposits_withdrawals(data_row, _parser, **_kwargs):
                                                  fee_quantity=row_dict['fee'],
                                                  fee_asset=normalise_asset(row_dict['asset']),
                                                  wallet=WALLET)
+    elif row_dict['type'] == "staking" and row_dict['txid'] != "":
+        data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_STAKING,
+                                                 data_row.timestamp,
+                                                 buy_quantity=row_dict['amount'],
+                                                 buy_asset=normalise_asset(row_dict['asset'].removesuffix('.S')),
+                                                 wallet=WALLET)                                                 
 
 def parse_kraken_trades(data_row, parser, **_kwargs):
     row_dict = data_row.row_dict

@@ -95,6 +95,33 @@ def parse_bittrex_trades_v1(data_row, parser, **_kwargs):
     else:
         raise UnexpectedTypeError(parser.in_header.index('Type'), 'Type', row_dict['Type'])
 
+def parse_bittrex_trades_v3(data_row, parser, **_kwargs):
+    row_dict = data_row.row_dict
+    data_row.timestamp = DataParser.parse_timestamp(row_dict['Closed (UTC)'])
+
+    if row_dict['Type'] in ("LIMIT_BUY", 'MARKET_BUY', 'CEILING_MARKET_BUY'):
+        data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_TRADE,
+                                                 data_row.timestamp,
+                                                 buy_quantity=Decimal(row_dict['Quantity']) - Decimal(row_dict['Remaining']),
+                                                 buy_asset=row_dict['Exchange'].split('-')[1],
+                                                 sell_quantity=row_dict['Price'],
+                                                 sell_asset=row_dict['Exchange'].split('-')[0],
+                                                 fee_quantity=0,
+                                                 fee_asset=row_dict['Exchange'].split('-')[0],
+                                                 wallet=WALLET)
+    elif row_dict['Type'] in ("LIMIT_SELL", 'MARKET_SELL'):
+        data_row.t_record = TransactionOutRecord(TransactionOutRecord.TYPE_TRADE,
+                                                 data_row.timestamp,
+                                                 buy_quantity=row_dict['Price'],
+                                                 buy_asset=row_dict['Exchange'].split('-')[0],
+                                                 sell_quantity=Decimal(row_dict['Quantity']) - Decimal(row_dict['Remaining']),
+                                                 sell_asset=row_dict['Exchange'].split('-')[1],
+                                                 fee_quantity=0,
+                                                 fee_asset=row_dict['Exchange'].split('-')[0],
+                                                 wallet=WALLET)
+    else:
+        raise UnexpectedTypeError(parser.in_header.index('Type'), 'Type', row_dict['Type'])
+
 def parse_bittrex_deposits_v2(data_row, _parser, **_kwargs):
     row_dict = data_row.row_dict
     data_row.timestamp = DataParser.parse_timestamp(row_dict['LastUpdatedDate'])
@@ -167,6 +194,13 @@ DataParser(DataParser.TYPE_EXCHANGE,
            row_handler=parse_bittrex_trades_v1)
 
 DataParser(DataParser.TYPE_EXCHANGE,
+            "Bittrex Trades",
+            ['Uuid', 'Exchange', 'Closed (UTC)', 'Opened (UTC)', 'Type', 'Time In Force', 'Bid/Ask',
+             'Quantity', 'Remaining', 'Price', 'Avg. Price per Share'],
+            worksheet_name="Bittrex T",
+            row_handler=parse_bittrex_trades_v3)
+
+DataParser(DataParser.TYPE_EXCHANGE,
            "Bittrex Deposits",
            ['Id', 'Currency', 'Amount', 'Confirmations', 'LastUpdatedDate', 'TxId',
             'CryptoAddress', 'Source', 'PropertyBagError', 'BankInfo', 'DepositUuid', 'State'],
@@ -184,6 +218,13 @@ DataParser(DataParser.TYPE_EXCHANGE,
            "Bittrex Deposits",
            ['Id', 'Currency', 'Amount', 'Confirmations', 'LastUpdatedDate', 'TxId',
             'CryptoAddress'],
+           worksheet_name="Bittrex D",
+           row_handler=parse_bittrex_deposits_v2)
+
+DataParser(DataParser.TYPE_EXCHANGE,
+           "Bittrex Deposits",
+           ['Id', 'Currency', 'Amount', 'Confirmations', 'LastUpdatedDate', 'TxId',
+            'CryptoAddress', 'Source', 'PropertyBagError', 'State'],
            worksheet_name="Bittrex D",
            row_handler=parse_bittrex_deposits_v2)
 
@@ -211,5 +252,12 @@ DataParser(DataParser.TYPE_EXCHANGE,
            "Bittrex Withdrawals",
            ['PaymentUuid', 'Currency', 'Amount', 'Address', 'Opened', 'Authorized',
             'PendingPayment', 'TxCost', 'TxId', 'Canceled', 'InvalidAddress'],
+           worksheet_name="Bittrex W",
+           row_handler=parse_bittrex_withdrawals)
+
+DataParser(DataParser.TYPE_EXCHANGE,
+           "Bittrex Withdrawals",
+           ['PaymentUuid', 'Currency', 'Amount', 'Address', 'OpenedDate', 'Authorized',
+            'Pending', 'TxId', 'TxFee', 'Target', 'Canceled'],
            worksheet_name="Bittrex W",
            row_handler=parse_bittrex_withdrawals)
