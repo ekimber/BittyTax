@@ -8,7 +8,7 @@
       pkgs = import nixpkgs { system = "x86_64-linux"; };
     in
       {
-        defaultPackage.x86_64-linux = 
+        packages.x86_64-linux.default = 
           #      with import nixpkgs { system = "x86_64-linux"; };          
           pkgs.python3Packages.buildPythonPackage rec {
           name = "BittyTax";
